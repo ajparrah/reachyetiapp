@@ -1,10 +1,26 @@
 import React from 'react';
-import {Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {Text, StyleSheet, TouchableOpacity, Linking, Alert} from 'react-native';
 
 const CardLink = ({name, dynamicLink}) => {
   const handleGoToLink = () => {
-    console.log('Hice click en el ', name);
-    console.log('Su dynamic link es ', dynamicLink);
+    const goToShareableLink = async () => {
+      try {
+        await Linking.openURL(dynamicLink);
+      } catch (error) {
+        console.log('Ha ocurrido un error al tratar de abrir Tacam Play');
+        Alert.alert(
+          'Go to link',
+          'An occurred a problem while trying to open the shareable link',
+          [
+            {
+              text: 'Ok',
+              onPress: () => null,
+            },
+          ],
+        );
+      }
+    };
+    goToShareableLink();
   };
 
   return (
