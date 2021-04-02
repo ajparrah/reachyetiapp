@@ -10,7 +10,7 @@ const ThisIsForName = ({name, handleScreenOpenend}) => {
         </Text>
         <Button
           onPress={handleScreenOpenend}
-          title="Close this screen"
+          title="Send Notification"
           color="#841584"
         />
       </View>
