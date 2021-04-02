@@ -1,47 +1,40 @@
-import React from 'react';
-import {Text, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, Text, View} from 'react-native';
+import dynamicLinks from '@react-native-firebase/dynamic-links';
 import ListShareableLinks from '../components/ListShareableLinks';
+import {getNamesAPI} from '../api/getNamesAPI';
+import {getNameFromUrl} from '../helpers/getNameFromUrl';
 
-const test = [
-  {
-    _id: '60653a34d3a14c001541cb1b',
-    name: 'gumercinda',
-    url: 'https://reachyetitest.page.link/Ymry',
-    createdBy: '6064ebb79d76790015ca965f',
-  },
-  {
-    _id: '60653a66d3a14c001541cb1c',
-    name: 'alejandro',
-    url: 'https://reachyetitest.page.link/dxxs',
-    createdBy: '6064ebb79d76790015ca965f',
-  },
-  {
-    _id: '60653ab6d3a14c001541cb1d',
-    name: 'hola',
-    url: 'https://reachyetitest.page.link/CF1b',
-    createdBy: '6064ebb79d76790015ca965f',
-  },
-  {
-    _id: '60653e9dd3a14c001541cb1e',
-    name: 'jose',
-    url: 'https://reachyetitest.page.link/5y6Q',
-    createdBy: '6064ebb79d76790015ca965f',
-  },
-  {
-    _id: '60653f5fd3a14c001541cb1f',
-    name: 'yolanda',
-    url: 'https://reachyetitest.page.link/WYLB',
-    createdBy: '6064ebb79d76790015ca965f',
-  },
-  {
-    _id: '6065532c95b2450015dea174',
-    name: 'pedry',
-    url: 'https://reachyetitest.page.link/2hwP',
-    createdBy: '6064ebb79d76790015ca965f',
-  },
-];
+const Home = ({setIsReffered}) => {
+  const [namesAndShareableLinks, setNamesAndShareableLinks] = useState(null);
 
-const Home = () => {
+  // const handleDynamicLink = link => {
+  //   console.log('link', link);
+  //   const name = getNameFromUrl(link.url);
+  //   setIsReffered(name);
+  // };
+  const handleDynamicLink = useCallback(
+    link => {
+      console.log('link', link);
+      const name = getNameFromUrl(link.url);
+      setIsReffered(name);
+    },
+    [setIsReffered],
+  );
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const data = await getNamesAPI();
+        setNamesAndShareableLinks(data);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    getData();
+    const unsubscribe = dynamicLinks().onLink(handleDynamicLink);
+    return () => unsubscribe();
+  }, [handleDynamicLink]);
   return (
     <>
       <View>
@@ -50,7 +43,14 @@ const Home = () => {
             List of shareable links
           </Text>
         </View>
-        <ListShareableLinks shareableLinks={test} />
+        {namesAndShareableLinks ? (
+          <ListShareableLinks shareableLinks={namesAndShareableLinks} />
+        ) : (
+          <>
+            <ActivityIndicator size="large" color="#841584" />
+            <Text>Loading...</Text>
+          </>
+        )}
       </View>
     </>
   );
