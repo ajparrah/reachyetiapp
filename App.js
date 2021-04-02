@@ -1,112 +1,79 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, {useEffect, useState} from 'react';
+import {Alert, SafeAreaView} from 'react-native';
+import Home from './src/screens/Home';
+import dynamicLinks from '@react-native-firebase/dynamic-links';
+import messaging from '@react-native-firebase/messaging';
+import ThisIsForName from './src/screens/ThisIsForName';
+import {getNameFromUrl} from './src/helpers/getNameFromUrl';
+import {sendNotificationAPI} from './src/api/sendNotificationAPI';
 
-import React from 'react';
-import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const requestUserPermission = async () => {
+  const authStatus = await messaging().requestPermission();
+  const enabled =
+    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+  if (enabled) {
+    console.log('Authorization status:', authStatus);
+  }
 };
 
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+const App = () => {
+  const [isReffered, setIsReffered] = useState(null);
+  const [tokenDevice, setTokenDevice] = useState(null);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const handleToken = async () => {
+    const token = await messaging().getToken();
+    setTokenDevice(token);
   };
 
+  useEffect(() => {
+    requestUserPermission();
+    handleToken();
+    dynamicLinks()
+      .getInitialLink()
+      .then(link => {
+        console.log('link', link);
+        const name = getNameFromUrl(link.url);
+        setIsReffered(name);
+      })
+      .catch(() => console.log('Without shareable link'));
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert(
+        remoteMessage.notification.title,
+        remoteMessage.notification.body,
+      );
+    });
+    return () => unsubscribe;
+  }, []);
+  const resetIsReffered = () => {
+    setIsReffered(null);
+    const generateNotification = async () => {
+      try {
+        const name = isReffered;
+        const isSended = await sendNotificationAPI(name, tokenDevice);
+        return isSended;
+      } catch (error) {
+        console.log(error);
+        Alert.alert('Warning', error.message);
+      }
+    };
+    generateNotification();
+  };
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <>
+      <SafeAreaView style={{backgroundColor: '#ffffff'}}>
+        {!isReffered ? (
+          <Home setIsReffered={setIsReffered} />
+        ) : (
+          <ThisIsForName
+            name={isReffered}
+            handleScreenOpenend={resetIsReffered}
+          />
+        )}
+      </SafeAreaView>
+    </>
   );
 };
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;

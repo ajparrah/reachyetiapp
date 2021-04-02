@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "297295910803",
+    "project_id": "reachyeti-319ea",
+    "storage_bucket": "reachyeti-319ea.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:297295910803:android:d26dd76d0bfcb124353a66",
+        "android_client_info": {
+          "package_name": "com.reachyetiapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "297295910803-grepidpf2vna1m8m90pj6dka307uf02v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcSKERMyqJrs8NJ18P2nGA2t1pdvvQCu4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "297295910803-grepidpf2vna1m8m90pj6dka307uf02v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
