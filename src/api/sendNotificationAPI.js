@@ -1,41 +1,60 @@
-const firebaseProject = 'reachyeti-319ea';
-const urlAPIFirebase = `https://fcm.googleapis.com/v1/projects/${firebaseProject}/messages:send`;
-const bearerToken =
-  'ya29.a0AfH6SMBT61p6J3Mc23fIoNMfLtqSqg9fAP2IWbCOB-DWS_kDhsvqT34ZquTMt8knwSzHyd-niN2b4OTF91pdHHI4_IRcUFzufvstBcJW3CG_u-d6FDMZwK_VnL4ENQO1HVLGY7LCOWmaQUVqW9jMw7tt7zPZ';
-const bearerTokenParsed = `Bearer ${bearerToken}`;
-
-const parseBody = (name, tokenDevice) => {
-  const bodyParsed = {
-    message: {
-      notification: {
-        title: 'Reachyetiapp',
-        body: `Notification from ${name}`,
-      },
-      token: tokenDevice,
-    },
-  };
-  return bodyParsed;
+const API_URL = 'https://reachyetitestback.herokuapp.com';
+const getUrlSendNotification = name => {
+  const resource = 'notifications';
+  const action = 'send';
+  const fullURL = `${API_URL}/${resource}/${action}/${name}`;
+  return fullURL;
 };
 
-export const sendNotificationAPI = async (name, tokenDevice) => {
+export const sendNotificationAPI = async name => {
   try {
-    const bodyParsed = parseBody(name, tokenDevice);
-    const response = await fetch(urlAPIFirebase, {
+    const url = getUrlSendNotification(name);
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: bearerTokenParsed,
       },
-      body: JSON.stringify(bodyParsed),
     });
     const data = await response.json();
-    if (data.name) {
+    if (data.ok) {
       return true;
     } else {
       throw Error('It was not possible to send notification');
     }
   } catch (error) {
     console.log('Something went wrongs sending notification', error);
+    throw error;
+  }
+};
+
+const getUrlSendDeviceToken = () => {
+  const resource = 'notifications';
+  const action = 'register';
+  const fullURL = `${API_URL}/${resource}/${action}`;
+  return fullURL;
+};
+
+export const sendTokenDeviceAPI = async token => {
+  try {
+    const url = getUrlSendDeviceToken();
+    const body = {
+      deviceToken: token,
+    };
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (data.ok) {
+      return data;
+    } else {
+      throw Error('It was not possible to ve device token');
+    }
+  } catch (error) {
+    console.log('Something went wrongs saving token on server', error);
     throw error;
   }
 };

@@ -7,7 +7,6 @@ const CardLink = ({name, dynamicLink}) => {
       try {
         await Linking.openURL(dynamicLink);
       } catch (error) {
-        console.log('Ha ocurrido un error al tratar de abrir Tacam Play');
         Alert.alert(
           'Go to link',
           'An occurred a problem while trying to open the shareable link',

@@ -1,15 +1,15 @@
 import React from 'react';
 import {Button, Text, View} from 'react-native';
 
-const ThisIsForName = ({name, handleScreenOpenend}) => {
+const ThisIsForName = ({name, handleSendNotification}) => {
   return (
     <>
       <View>
         <Text style={{fontSize: 21, textAlign: 'center'}}>
-          This is for {name}
+          This page is for {name}
         </Text>
         <Button
-          onPress={handleScreenOpenend}
+          onPress={handleSendNotification}
           title="Send Notification"
           color="#841584"
         />

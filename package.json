@@ -7,9 +7,12 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "buildAndroid": "cd android && .\\gradlew assembleRelease",
+    "sendToPhone": "adb -d install android/app/build/outputs/apk/release/app-release.apk"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.15.1",
     "@react-native-firebase/app": "^11.2.0",
     "@react-native-firebase/dynamic-links": "^11.2.0",
     "@react-native-firebase/messaging": "^11.2.0",

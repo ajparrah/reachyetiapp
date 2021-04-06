@@ -5,9 +5,15 @@ import dynamicLinks from '@react-native-firebase/dynamic-links';
 import messaging from '@react-native-firebase/messaging';
 import ThisIsForName from './src/screens/ThisIsForName';
 import {getNameFromUrl} from './src/helpers/getNameFromUrl';
-import {sendNotificationAPI} from './src/api/sendNotificationAPI';
+import {
+  sendNotificationAPI,
+  sendTokenDeviceAPI,
+} from './src/api/sendNotificationAPI';
+import Storage from './src/libs/storage';
 
-const requestUserPermission = async () => {
+const storage = Storage.Instance;
+
+const requestUserPermissionMessaging = async () => {
   const authStatus = await messaging().requestPermission();
   const enabled =
     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -20,16 +26,33 @@ const requestUserPermission = async () => {
 
 const App = () => {
   const [isReffered, setIsReffered] = useState(null);
-  const [tokenDevice, setTokenDevice] = useState(null);
 
   const handleToken = async () => {
-    const token = await messaging().getToken();
-    setTokenDevice(token);
+    try {
+      const isDeviceTokenRegistered = await storage.get(
+        '@tokenNotificationRegistered',
+      );
+      console.log('Value of isDeviceTokenRegistered', isDeviceTokenRegistered);
+      if (!isDeviceTokenRegistered) {
+        const token = await messaging().getToken();
+        const registeredOnDb = await sendTokenDeviceAPI(token);
+        if (registeredOnDb.ok) {
+          await storage.save('@tokenNotificationRegistered', true);
+          console.log('This is the token', token);
+        }
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error an occurred while saving token',
+        'Check your internet connection or close an open app again',
+      );
+    }
   };
 
   useEffect(() => {
-    requestUserPermission();
+    requestUserPermissionMessaging();
     handleToken();
+
     dynamicLinks()
       .getInitialLink()
       .then(link => {
@@ -38,6 +61,7 @@ const App = () => {
         setIsReffered(name);
       })
       .catch(() => console.log('Without shareable link'));
+
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       Alert.alert(
         remoteMessage.notification.title,
@@ -46,20 +70,23 @@ const App = () => {
     });
     return () => unsubscribe;
   }, []);
-  const resetIsReffered = () => {
-    setIsReffered(null);
+
+  const handleSendNotification = () => {
     const generateNotification = async () => {
       try {
         const name = isReffered;
-        const isSended = await sendNotificationAPI(name, tokenDevice);
+        const isSended = await sendNotificationAPI(name);
         return isSended;
       } catch (error) {
         console.log(error);
         Alert.alert('Warning', error.message);
+      } finally {
+        setIsReffered(null);
       }
     };
     generateNotification();
   };
+
   return (
     <>
       <SafeAreaView style={{backgroundColor: '#ffffff'}}>
@@ -68,7 +95,7 @@ const App = () => {
         ) : (
           <ThisIsForName
             name={isReffered}
-            handleScreenOpenend={resetIsReffered}
+            handleSendNotification={handleSendNotification}
           />
         )}
       </SafeAreaView>
